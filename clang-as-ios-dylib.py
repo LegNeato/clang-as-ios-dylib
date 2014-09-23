@@ -25,13 +25,8 @@ def get_developer_dir():
         # At this point, it's not yet setting DEVELOPER_DIR in the environment, but
         # it is prepending '/Applications/Xcode.app/Contents/Developer/usr/bin' to
         # the path.  We can deduce DEVELOPER_DIR from that.
-
-        # This should give us a path that's inside the developer dir, given how
-        # Xcode has set our path. e.g. --
-        # /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
-        xcodebuild_path = subprocess.check_output(['/usr/bin/which', 'xcodebuild']).strip()
-        usr_bin_path = os.path.dirname(xcodebuild_path)
-        return os.path.normpath(os.path.join(usr_bin_path, '..', '..'))
+        base_path = subprocess.check_output(['xcode-select', '-p']).strip()
+        return os.path.normpath(base_path)
 
 
 def get_clang_path():
@@ -216,8 +211,6 @@ new_argv.append('-v')
 if tool == 'ld':
     new_env['IPHONEOS_DEPLOYMENT_TARGET'] = deployment_target
 
-clang_path = os.path.join(
-    developer_dir,
-    'Toolchains/XcodeDefault.xctoolchain/usr/bin/clang')
+clang_path = get_clang_path()
 
 os.execve(clang_path, [clang_path] + new_argv, new_env)
